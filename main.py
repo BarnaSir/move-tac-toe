@@ -105,20 +105,28 @@ def double_click(event):
         return
 
     if ONE_TIME_CONSTANT == 1:
+        ONE_TIME_CONSTANT -= 1
         toggle_turn()
 
+    print("current player is", current_player.name)
+
     info['text'] = ""
+    if a == xPrev and b == yPrev:
+        info['text'] ="Can't move to same position"
+        return 0
     if xPrev != None and not is_empty(a, b):
         info['text'] = "The position is not empty"
         return 0
     if not own_cell(a, b, current_player) and not is_empty(a, b):
         if xPrev == None:
             info['text'] = "That's not your piece"
+            print(current_player.name)
         else:
+            print(a, b)
+            print(xPrev, yPrev)
             info['text'] = "The position is not empty"
         return
     if xPrev == None and own_cell(a, b, current_player) and FilledUp==1:
-        ONE_TIME_CONSTANT -= 1
         xPrev, yPrev = a, b
         current_index = POINTS.index((a,b))
         if not is_valid_move_empty_cell(VALID_MOVES[current_index]):
