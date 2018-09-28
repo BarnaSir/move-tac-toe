@@ -151,33 +151,24 @@ def double_click(event):
 def legal_move(x, y, xPrev, yPrev):
     if xPrev == x and yPrev == y:
         return True
-    print("current position is", x, y)
-    print("previous position is", xPrev, yPrev)
     current_index = POINTS.index((x, y))
     previous_index = POINTS.index((xPrev, yPrev))
-    print("previous index is ",previous_index, "current index is ",current_index)
     print(VALID_MOVES[previous_index])
     if current_index in VALID_MOVES[previous_index]:
-        print("returned true")
         return True
     info['text'] = "INVALID MOVE"
-    print("Invalid move")
-    # toggle_turn()
     return False
 
 def is_valid_move_empty_cell(tupp):
-    sts = 0
     for i in tupp:
         x, y = POINTS[i]
         if is_empty(x, y):
             return True
     return False
 
-def is_mmovable():
+def is_movable():
     pass
 
-def game_finished():
-    print("game over")
 
 def toggle_turn():
     global current_player
@@ -216,9 +207,6 @@ def check_game():
     return (y1 - y2) * (x1 - x3) == (y1 - y3) * (x1 - x2)
 
 
-def addfn(check_list):
-    return (check_list[0] == check_list[1][::-1] or check_list[0] == check_list[2][::-1] or check_list[1] == check_list[2][::-1]) and ((WIDTH//2, HEIGHT//2) in check_list)
-
 def is_empty(x, y):
     if player_1.owned_position or player_2.owned_position:
         if (x, y) in player_1.owned_position.values() or (x, y) in player_2.owned_position.values():
@@ -228,11 +216,6 @@ def is_empty(x, y):
 def all_filled():
     if len(player_1.owned_position) == len(player_2.owned_position) == 3:
         return 1
-
-# def delete_node(x, y):
-
-def one(event):
-    print("pressed at ", event.x, event.y)
 
 
 draw_grid()
@@ -247,7 +230,5 @@ status = Label(root, text="Turn: "+player_2.name + "(" + player_2.color_notation
 status.pack(side=BOTTOM, fill=X)
 toggle_turn()
 canvas.bind('<Double-Button-1>', double_click)
-# canvas.bind('<ButtonPress-1>', one)
 canvas.bind('<ButtonPress-1>', update)
-# canvas.bind('<Double-Button-1>', lambda event: double_click(event, xpyp))
 root.mainloop()
