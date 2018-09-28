@@ -75,11 +75,13 @@ def update(event):
     else:
         pass
     if check_game():
-        print("Game won by ", current_player.name)
-        status['text'] = "the window will be closed soon"
-        canvas.unbind("<Button-1>")
-        canvas.unbind("<Double-Button-1>")
+        result()
 
+def result():
+    print("Game won by ", current_player.name)
+    status['text'] = "Game Over!!!  " + current_player.name + " wins."
+    canvas.unbind("<Button-1>")
+    canvas.unbind("<Double-Button-1>")
 
 def nearest_node(x, y):
     temp = maxsize
@@ -97,30 +99,39 @@ def double_click(event):
     global xPrev, yPrev, current_player, FilledUp
     if FilledUp != 1:
         return 0
-    print("entered double click fxn")
-    print("entered as", current_player.name)
+    print("double click entered as", current_player.name)
+    print("Previous location is ", xPrev, yPrev)
     a, b = nearest_node(event.x, event.y)
     if a is None: return
     if xPrev == None and is_empty(a, b):
         return
     if len(player_1.owned_position) != 3 and len(player_2.owned_position) != 3:
         return
-    print("Global variable is now", xPrev)
     info['text'] = ""
     if len(player_1.owned_position) == 3 and len(player_2.owned_position) == 3:
         toggle_turn()
+    if xPrev != None and not is_empty(a, b):
+        info['text'] = "The position is not empty"
+        return 0
     if not own_cell(a, b, current_player) and not is_empty(a, b):
-        print("Not your piece")
-        info['text'] = "That's not your piece"
-        toggle_turn()
+        if xPrev == None:
+            info['text'] = "That's not your piece"
+            toggle_turn()
+        else:
+            info['text'] = "The position is not empty"
         return
+
     print("it's "+current_player.name+"'s turn now")
-    if xPrev == None and own_cell(a, b, current_player) and all_filled():
+    if xPrev == None and own_cell(a, b, current_player) and FilledUp==1:
         xPrev, yPrev = a, b
         current_index = POINTS.index((a,b))
         print("deleted from index ", current_index)
         print("it can be moved to indexes as: ", VALID_MOVES[current_index])
         if not is_valid_move_empty_cell(VALID_MOVES[current_index]):
+            print("This is immovable")
+            info['text'] = "IMMOVABLE"
+            toggle_turn()
+            xPrev, yPrev = None, None
             return False
         print("Doubled clicked by ", current_player.name)
         canvas.delete(get_oval_obj_key(a, b, current_player))
@@ -129,23 +140,30 @@ def double_click(event):
         print("Doubled clicked by ", current_player.name)
         oval_obj = canvas.create_oval(a-20, b-20, a+20, b+20, fill=current_player.color_notation)
         current_player.owned_position[oval_obj] = (a, b)
+        if xPrev == a and yPrev == b:
+            toggle_turn()
+        status_bar()
         xPrev = yPrev = None
     print("position owned by "+current_player.name+" are " + str(current_player.owned_position))
-    status_bar()
     if check_game():
-        print("Game won by ", current_player.name)
-        status['text'] = "the window will be closed soon"
-        canvas.unbind("<Button-1>")
-        canvas.unbind("<Double-Button-1>")
+        result()
 
 def legal_move(x, y, xPrev, yPrev):
+    if xPrev == x and yPrev == y:
+        return True
     print("current position is", x, y)
     print("previous position is", xPrev, yPrev)
-    print(POINTS)
     current_index = POINTS.index((x, y))
     previous_index = POINTS.index((xPrev, yPrev))
+    print("previous index is ",previous_index, "current index is ",current_index)
+    print(VALID_MOVES[previous_index])
     if current_index in VALID_MOVES[previous_index]:
+        print("returned true")
         return True
+    info['text'] = "INVALID MOVE"
+    print("Invalid move")
+    # toggle_turn()
+    return False
 
 def is_valid_move_empty_cell(tupp):
     sts = 0
