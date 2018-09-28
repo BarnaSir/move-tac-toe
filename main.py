@@ -98,7 +98,6 @@ def double_click(event):
     if FilledUp != 1:
         return 0
     print("entered double click fxn")
-    # current_player = toggle_turn()
     print("entered as", current_player.name)
     a, b = nearest_node(event.x, event.y)
     if a is None: return
@@ -106,11 +105,7 @@ def double_click(event):
         return
     if len(player_1.owned_position) != 3 and len(player_2.owned_position) != 3:
         return
-    # print("passed first if condition")
     print("Global variable is now", xPrev)
-    # current_player = players.__next__()
-    # print("position owned by "+current_player.name+" " + str(len(current_player.owned_position)))
-    # print("double clicked by ", current_player.name)
     info['text'] = ""
     if len(player_1.owned_position) == 3 and len(player_2.owned_position) == 3:
         toggle_turn()
@@ -122,23 +117,24 @@ def double_click(event):
     print("it's "+current_player.name+"'s turn now")
     if xPrev == None and own_cell(a, b, current_player) and all_filled():
         xPrev, yPrev = a, b
+        current_index = POINTS.index((a,b))
+        print("deleted from index ", current_index)
+        print("it can be moved to indexes as: ", VALID_MOVES[current_index])
+        if not is_valid_move_empty_cell(VALID_MOVES[current_index]):
+            return False
         print("Doubled clicked by ", current_player.name)
         canvas.delete(get_oval_obj_key(a, b, current_player))
         current_player.owned_position.pop(get_oval_obj_key(a, b, current_player), None)
-        # current_player = players.__next__()
     elif xPrev != None and is_empty(a, b) and legal_move(a, b, xPrev, yPrev):
-        # current_player = players.__next__()
         print("Doubled clicked by ", current_player.name)
         oval_obj = canvas.create_oval(a-20, b-20, a+20, b+20, fill=current_player.color_notation)
         current_player.owned_position[oval_obj] = (a, b)
-        # toggle_turn()
         xPrev = yPrev = None
     print("position owned by "+current_player.name+" are " + str(current_player.owned_position))
     status_bar()
     if check_game():
         print("Game won by ", current_player.name)
         status['text'] = "the window will be closed soon"
-        # exit(0)
         canvas.unbind("<Button-1>")
         canvas.unbind("<Double-Button-1>")
 
@@ -151,13 +147,23 @@ def legal_move(x, y, xPrev, yPrev):
     if current_index in VALID_MOVES[previous_index]:
         return True
 
+def is_valid_move_empty_cell(tupp):
+    sts = 0
+    for i in tupp:
+        x, y = POINTS[i]
+        if is_empty(x, y):
+            return True
+    return False
+
+def is_mmovable():
+    pass
+
 def game_finished():
     print("game over")
 
 def toggle_turn():
     global current_player
     current_player = players.__next__()
-    # return current_player
 
 def status_bar():
     if current_player == player_1:
@@ -183,15 +189,14 @@ def get_oval_obj_key(x, y, current_player):
 
 def check_game():
     global current_player
-    check_list = tuple(current_player.owned_position.values())
-    print("went to check game and found check_list")
-    print(check_list)
-    if len(check_list) != 3:
+    coordinates = tuple(current_player.owned_position.values())
+    if len(coordinates) != 3:
         return 0
-    return (check_list[0][0] == check_list[1][0] == check_list[2][0]) \
-           or (check_list[0][1] == check_list[1][1] == check_list[2][1]) \
-           or ((check_list[0][0] == check_list[0][1]) and (check_list[1][0] == check_list[1][1]) and (check_list[2][0] == check_list[2][1])) \
-           or (((check_list[0][0] == check_list[0][1]) or (check_list[1][0] == check_list[1][1]) or (check_list[2][0] == check_list[2][1])) and addfn(check_list))
+    x1, y1 = coordinates[0][0], coordinates[0][1]
+    x2, y2 = coordinates[1][0], coordinates[1][1]
+    x3, y3 = coordinates[2][0], coordinates[2][1]
+    return (y1 - y2) * (x1 - x3) == (y1 - y3) * (x1 - x2)
+
 
 def addfn(check_list):
     return (check_list[0] == check_list[1][::-1] or check_list[0] == check_list[2][::-1] or check_list[1] == check_list[2][::-1]) and ((WIDTH//2, HEIGHT//2) in check_list)
