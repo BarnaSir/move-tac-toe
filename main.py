@@ -13,6 +13,7 @@ canvas = Canvas(frame, width=620, height=600, bg="white")
 canvas.pack(side=BOTTOM)
 WIDTH = HEIGHT = 600
 GAP = 50
+ONE_TIME_CONSTANT = 1
 xPrev = None
 yPrev = None
 FilledUp = None
@@ -36,7 +37,6 @@ GRID_POINTS = {
                7: (GAP, GAP, GAP, HEIGHT-GAP)
               }
 
-
 class Player:
 
     def __init__(self, name, color_notation):
@@ -58,7 +58,6 @@ def update(event):
     if FilledUp != None:
         return
     toggle_turn()
-    print("entered click event as ", current_player.name)
     x, y = event.x, event.y
     (a, b) = nearest_node(x, y)
     if a is None or not is_empty(a, b):
@@ -94,59 +93,53 @@ def nearest_node(x, y):
         return None, None
     return nearest_point
 
+def valid_double_click():
+    return
 
 def double_click(event):
-    global xPrev, yPrev, current_player, FilledUp
+    global xPrev, yPrev, current_player, FilledUp, ONE_TIME_CONSTANT
     if FilledUp != 1:
         return 0
-    print("double click entered as", current_player.name)
-    print("Previous location is ", xPrev, yPrev)
     a, b = nearest_node(event.x, event.y)
-    if a is None: return
-    if xPrev == None and is_empty(a, b):
+    if (a is None) or (xPrev == None and is_empty(a, b)) or (len(player_1.owned_position) != 3 and len(player_2.owned_position) != 3):
         return
-    if len(player_1.owned_position) != 3 and len(player_2.owned_position) != 3:
-        return
-    info['text'] = ""
-    if len(player_1.owned_position) == 3 and len(player_2.owned_position) == 3:
+
+    if ONE_TIME_CONSTANT == 1:
         toggle_turn()
+
+    info['text'] = ""
     if xPrev != None and not is_empty(a, b):
         info['text'] = "The position is not empty"
         return 0
     if not own_cell(a, b, current_player) and not is_empty(a, b):
         if xPrev == None:
             info['text'] = "That's not your piece"
-            toggle_turn()
         else:
             info['text'] = "The position is not empty"
         return
-
-    print("it's "+current_player.name+"'s turn now")
     if xPrev == None and own_cell(a, b, current_player) and FilledUp==1:
+        ONE_TIME_CONSTANT -= 1
         xPrev, yPrev = a, b
         current_index = POINTS.index((a,b))
-        print("deleted from index ", current_index)
-        print("it can be moved to indexes as: ", VALID_MOVES[current_index])
         if not is_valid_move_empty_cell(VALID_MOVES[current_index]):
-            print("This is immovable")
             info['text'] = "IMMOVABLE"
-            toggle_turn()
             xPrev, yPrev = None, None
             return False
-        print("Doubled clicked by ", current_player.name)
-        canvas.delete(get_oval_obj_key(a, b, current_player))
-        current_player.owned_position.pop(get_oval_obj_key(a, b, current_player), None)
+        canvas.itemconfig(get_oval_obj_key(a, b, current_player), outline="white", width=7)
     elif xPrev != None and is_empty(a, b) and legal_move(a, b, xPrev, yPrev):
-        print("Doubled clicked by ", current_player.name)
         oval_obj = canvas.create_oval(a-20, b-20, a+20, b+20, fill=current_player.color_notation)
+        canvas.delete(get_oval_obj_key(xPrev, yPrev, current_player))
+        current_player.owned_position.pop(get_oval_obj_key(xPrev, yPrev, current_player), None)
         current_player.owned_position[oval_obj] = (a, b)
+        if check_game():
+            result()
+        else:
+            status_bar()
+        toggle_turn()
         if xPrev == a and yPrev == b:
             toggle_turn()
-        status_bar()
         xPrev = yPrev = None
-    print("position owned by "+current_player.name+" are " + str(current_player.owned_position))
-    if check_game():
-        result()
+
 
 def legal_move(x, y, xPrev, yPrev):
     if xPrev == x and yPrev == y:
@@ -169,17 +162,14 @@ def is_valid_move_empty_cell(tupp):
 def is_movable():
     pass
 
-
 def toggle_turn():
     global current_player
     current_player = players.__next__()
 
 def status_bar():
     if current_player == player_1:
-        print("It's " + player_2.name + "'s turn now")
         status['text'] = "Turn: " + player_2.name + "(" + player_2.color_notation + ")"
     else:
-        print("It's " + player_1.name + "'s turn now")
         status['text'] = "Turn: " + player_1.name + "(" + player_1.color_notation + ")"
 
 
@@ -219,7 +209,6 @@ def all_filled():
 
 
 draw_grid()
-print(POINTS)
 player_1 = Player("Sudarshan", "Blue")
 player_2 = Player("Barna", "Yellow")
 players_list = {player_1: player_2, player_2: player_1}
