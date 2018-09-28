@@ -1,27 +1,30 @@
 from sys import maxsize
 from math import hypot
 from itertools import cycle
-from time import sleep
 
 from tkinter import *
 
 root = Tk()
 root.title("Barna's board Game")
 root.resizable(False, False)
-frame = Frame(root, width=600, height=500)
+frame = Frame(root, width=800, height=700)
 frame.pack()
-canvas = Canvas(frame, width=600, height=500, bg="white")
-canvas.pack()
-WIDTH = 600
-HEIGHT = 500
+canvas = Canvas(frame, width=620, height=600, bg="white")
+canvas.pack(side=BOTTOM)
+WIDTH = HEIGHT = 600
 GAP = 50
-xPress = None
-yPress = None
+xPrev = None
+yPrev = None
 FilledUp = None
 xRelease, yRelease = None, None
-POINTS = ((GAP, GAP), (GAP, HEIGHT/2), (WIDTH-GAP, HEIGHT/2), (GAP, HEIGHT-GAP),
-          (WIDTH-GAP, HEIGHT-GAP), (WIDTH/2, GAP), (WIDTH-GAP, GAP), (WIDTH/2, HEIGHT-GAP),
-          (WIDTH/2, HEIGHT/2))
+POINTS = [
+            (GAP, GAP), (WIDTH//2, GAP), (WIDTH-GAP, GAP),
+            (GAP, HEIGHT//2), (WIDTH//2, HEIGHT//2), (WIDTH-GAP, HEIGHT//2),
+            (GAP, HEIGHT-GAP), (WIDTH//2, HEIGHT-GAP), (WIDTH-GAP, HEIGHT-GAP),
+          ]
+VALID_MOVES = {0: (1, 3, 4), 1: (0, 2, 4), 2: (1, 4, 5),
+               3: (0, 4, 6), 4: (0, 1, 2, 3, 5, 6, 7, 8), 5: (4, 2, 8),
+               6: (4, 3, 7), 7: (4, 6, 8), 8: (4, 5, 7) }
 GRID_POINTS = {
                0: (GAP, GAP, WIDTH-GAP, GAP),
                1: (GAP, HEIGHT/2, WIDTH-GAP, HEIGHT/2),
@@ -63,32 +66,20 @@ def update(event):
         return 0
     if all_filled():
         print("all are filled")
-    # toggle_turn()
     if current_player.initial_choices != 0:
         current_player.initial_choices -= 1
         oval_obj = canvas.create_oval(a-20, b-20, a+20, b+20, fill=current_player.color_notation)
-        # oval_obj.place(100, 100)
         current_player.owned_position[oval_obj] = (a, b)
-        # print(current_player.owned_position)
         print(current_player.name, "made a move.")
-        # print("Positions owned by", current_player.name, "are:", current_player.owned_position)
-        status['text'] = current_player.name + " made a move"
-        # toggle_turn()
-        if player_1 == current_player:
-            print("It's "+player_2.name+"'s turn now")
-            status['text'] = status['text'] + ". It's "+player_2.name+"'s turn now"
-        else:
-            print("It's "+player_1.name+"'s turn now")
-            status['text'] = status['text'] + ". It's "+player_1.name+"'s turn now"
+        status_bar()
     else:
-        # current_player = players.__next__()
-        # toggle_turn()
         pass
     if check_game():
         print("Game won by ", current_player.name)
         status['text'] = "the window will be closed soon"
         canvas.unbind("<Button-1>")
         canvas.unbind("<Double-Button-1>")
+
 
 def nearest_node(x, y):
     temp = maxsize
@@ -103,7 +94,7 @@ def nearest_node(x, y):
 
 
 def double_click(event):
-    global xPress, yPress, current_player, FilledUp
+    global xPrev, yPrev, current_player, FilledUp
     if FilledUp != 1:
         return 0
     print("entered double click fxn")
@@ -111,42 +102,54 @@ def double_click(event):
     print("entered as", current_player.name)
     a, b = nearest_node(event.x, event.y)
     if a is None: return
-    if xPress == None and is_empty(a, b):
+    if xPrev == None and is_empty(a, b):
         return
     if len(player_1.owned_position) != 3 and len(player_2.owned_position) != 3:
         return
     # print("passed first if condition")
-    print("Global variable is now", xPress)
+    print("Global variable is now", xPrev)
     # current_player = players.__next__()
     # print("position owned by "+current_player.name+" " + str(len(current_player.owned_position)))
     # print("double clicked by ", current_player.name)
+    info['text'] = ""
     if len(player_1.owned_position) == 3 and len(player_2.owned_position) == 3:
         toggle_turn()
     if not own_cell(a, b, current_player) and not is_empty(a, b):
         print("Not your piece")
+        info['text'] = "That's not your piece"
         toggle_turn()
         return
     print("it's "+current_player.name+"'s turn now")
-    if xPress == None and own_cell(a, b, current_player) and all_filled():
-        xPress, yPress = a, b
+    if xPrev == None and own_cell(a, b, current_player) and all_filled():
+        xPrev, yPrev = a, b
         print("Doubled clicked by ", current_player.name)
         canvas.delete(get_oval_obj_key(a, b, current_player))
         current_player.owned_position.pop(get_oval_obj_key(a, b, current_player), None)
         # current_player = players.__next__()
-    elif xPress != None and is_empty(a, b):
+    elif xPrev != None and is_empty(a, b) and legal_move(a, b, xPrev, yPrev):
         # current_player = players.__next__()
         print("Doubled clicked by ", current_player.name)
         oval_obj = canvas.create_oval(a-20, b-20, a+20, b+20, fill=current_player.color_notation)
         current_player.owned_position[oval_obj] = (a, b)
         # toggle_turn()
-        xPress = yPress = None
+        xPrev = yPrev = None
     print("position owned by "+current_player.name+" are " + str(current_player.owned_position))
+    status_bar()
     if check_game():
         print("Game won by ", current_player.name)
         status['text'] = "the window will be closed soon"
         # exit(0)
         canvas.unbind("<Button-1>")
         canvas.unbind("<Double-Button-1>")
+
+def legal_move(x, y, xPrev, yPrev):
+    print("current position is", x, y)
+    print("previous position is", xPrev, yPrev)
+    print(POINTS)
+    current_index = POINTS.index((x, y))
+    previous_index = POINTS.index((xPrev, yPrev))
+    if current_index in VALID_MOVES[previous_index]:
+        return True
 
 def game_finished():
     print("game over")
@@ -155,6 +158,15 @@ def toggle_turn():
     global current_player
     current_player = players.__next__()
     # return current_player
+
+def status_bar():
+    if current_player == player_1:
+        print("It's " + player_2.name + "'s turn now")
+        status['text'] = "Turn: " + player_2.name + "(" + player_2.color_notation + ")"
+    else:
+        print("It's " + player_1.name + "'s turn now")
+        status['text'] = "Turn: " + player_1.name + "(" + player_1.color_notation + ")"
+
 
 def move_condition():
     if len(player_1.owned_position) == 3 or len(player_2.owned_position) == 3:
@@ -172,6 +184,8 @@ def get_oval_obj_key(x, y, current_player):
 def check_game():
     global current_player
     check_list = tuple(current_player.owned_position.values())
+    print("went to check game and found check_list")
+    print(check_list)
     if len(check_list) != 3:
         return 0
     return (check_list[0][0] == check_list[1][0] == check_list[2][0]) \
@@ -180,7 +194,7 @@ def check_game():
            or (((check_list[0][0] == check_list[0][1]) or (check_list[1][0] == check_list[1][1]) or (check_list[2][0] == check_list[2][1])) and addfn(check_list))
 
 def addfn(check_list):
-    return check_list[0] == check_list[1][::-1] or check_list[0] == check_list[2][::-1] or check_list[1] == check_list[2][::-1]
+    return (check_list[0] == check_list[1][::-1] or check_list[0] == check_list[2][::-1] or check_list[1] == check_list[2][::-1]) and ((WIDTH//2, HEIGHT//2) in check_list)
 
 def is_empty(x, y):
     if player_1.owned_position or player_2.owned_position:
@@ -204,7 +218,9 @@ player_1 = Player("Sudarshan", "Blue")
 player_2 = Player("Barna", "Yellow")
 players_list = {player_1: player_2, player_2: player_1}
 players = cycle([player_1, player_2])
-status = Label(root, text="It's "+player_1.name+"'s turn now!" , bd=1, relief=SUNKEN, anchor=W)
+info = Label(root, text="", font="Times 13")
+info.pack(side=RIGHT)
+status = Label(root, text="Turn: "+player_2.name + "(" + player_2.color_notation + ")" , bd=1, relief=SUNKEN, anchor=W, font="Times 13")
 status.pack(side=BOTTOM, fill=X)
 toggle_turn()
 canvas.bind('<Double-Button-1>', double_click)
