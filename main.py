@@ -46,7 +46,6 @@ GRID_POINTS = {
 }
 
 
-
 class Player:
 
     def __init__(self, name, color_notation):
@@ -67,6 +66,7 @@ def show_result():
     status['text'] = "Game Over!  " + current_player.color_notation + " wins the game"
     canvas.unbind("<ButtonPress-1>")
     canvas.unbind("<ButtonRelease-1>")
+
     messagebox.showinfo("Game Over!!! ", current_player.color_notation + " wins the game")
 
 
@@ -75,6 +75,7 @@ def get_nearest_node(x, y):
     # wouldn't be referenced before assignment, because the if condition becomes true for
     # at least one condition
     temp = sys.maxsize
+
     for i in range(9):
         distance = hypot(x-POINTS[i][0], y-POINTS[i][1])
         if distance < temp:
@@ -104,6 +105,12 @@ def move_a_piece(a, b, x_prev, y_prev):
     current_player.owned_position.pop(get_oval_obj_key(x_prev, y_prev, current_player), None)
     current_player.owned_position[oval_obj] = (a, b)
 
+def move_a_piece(a, b, x_prev, y_prev):
+    oval_obj = canvas.create_oval(a-30, b-30, a+30, b+30, fill=current_player.color_notation)
+    canvas.delete(get_oval_obj_key(x_prev, y_prev, current_player))
+    current_player.owned_position.pop(get_oval_obj_key(x_prev, y_prev, current_player), None)
+    current_player.owned_position[oval_obj] = (a, b)
+
 
 def legal_move(x, y, x_prev=None, y_prev=None):
     if x_prev == x and y_prev == y:
@@ -118,6 +125,7 @@ def legal_move(x, y, x_prev=None, y_prev=None):
     index_of_obj = get_oval_obj_key(x_prev, y_prev, current_player)
     canvas.coords(index_of_obj, x_prev - 30, y_prev - 30, x_prev + 30,
                   y_prev + 30)
+
     return False
 
 
@@ -152,7 +160,6 @@ def show_status_bar():
 
 def exhaust_single_click():
     return len(player_1.owned_position) == 3 and len(player_2.owned_position) == 3
-
 
 def own_cell(x, y, player):
     if (x, y) in player.owned_position.values():
@@ -268,6 +275,7 @@ def can_move_piece():
     if player_1.remaining_piece == 0 and player_2.remaining_piece == 0:
         return 1
     pass
+
 
 def close():
     root.destroy()
