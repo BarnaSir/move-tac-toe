@@ -1,4 +1,3 @@
-# from sys import maxsize
 import sys
 from math import hypot
 from itertools import cycle
@@ -60,7 +59,7 @@ class Player:
 def draw_grid():
     for i in range(8):
         canvas.create_line(GRID_POINTS[i][0], GRID_POINTS[i][1], GRID_POINTS[i][2],
-                           GRID_POINTS[i][3], width=3)
+                           GRID_POINTS[i][3], width=4)
 
 
 def show_result():
@@ -107,15 +106,18 @@ def move_a_piece(a, b, x_prev, y_prev):
 
 
 def legal_move(x, y, x_prev=None, y_prev=None):
-
     if x_prev == x and y_prev == y:
         return True
     current_index = POINTS.index((x, y))
     previous_index = POINTS.index((x_prev, y_prev))
-    print(VALID_MOVES[previous_index])
     if current_index in VALID_MOVES[previous_index]:
         return True
     info['text'] = "Invalid Move  "
+    check_status = 0
+    canvas.unbind("<Motion>")
+    index_of_obj = get_oval_obj_key(x_prev, y_prev, current_player)
+    canvas.coords(index_of_obj, x_prev - 30, y_prev - 30, x_prev + 30,
+                  y_prev + 30)
     return False
 
 
@@ -189,78 +191,25 @@ def all_filled():
 def bring_oval_in_motion(event, index):
     canvas.coords(index, event.x-30, event.y-30, event.x+30, event.y+30)
 
-
-def single_click_update(event):
-    global ALLOW_SINGLE_CLICK, current_player
-    if exhaust_single_click():  # prevent single click if it's exhausted
-        ALLOW_SINGLE_CLICK = 0
-    if ALLOW_SINGLE_CLICK != 1:
-        return
-    toggle_turn()
-    (a, b) = get_nearest_node(event.x, event.y)
-    if a is None or not is_empty(a, b):
-        toggle_turn()
-        return
-    oval_obj = canvas.create_oval(a-30, b-30, a+30, b+30, fill=current_player.color_notation)
-    current_player.owned_position[oval_obj] = (a, b)
-    show_status_bar()
-    if check_game():
-        show_result()
-
-
-def double_click_update(event):
-
-    global xprev, yprev, current_player, ALLOW_SINGLE_CLICK, ONE_TIME_CONSTANT
-    a, b = get_nearest_node(event.x, event.y)
-    if (ALLOW_SINGLE_CLICK != 0) or (invalid_double_click(a, b, xprev)) \
-            or (a == xprev and b == yprev):
-        if a == xprev and b == yprev:
-            info['text'] = "Can't move to same position.  "
-        return
-    if ONE_TIME_CONSTANT == 1:
-        ONE_TIME_CONSTANT -= 1
-        toggle_turn()
-    if not is_empty(a, b):
-        if xprev is None and not own_cell(a, b, current_player):
-            info['text'] = "That's not your piece.  "
-            return
-        elif xprev is not None:
-            info['text'] = "INVALID MOVE   "
-            return
-    info['text'] = ""
-    if is_obj_movable(a, b, xprev, current_player, ALLOW_SINGLE_CLICK):
-        xprev, yprev = a, b
-        current_index = POINTS.index((a, b))
-        if not valid_move_has_empty_cell(VALID_MOVES[current_index]):
-            info['text'] = "Immovable  "
-            xprev, yprev = None, None
-            return 0
-        canvas.itemconfig(get_oval_obj_key(a, b, current_player), outline="#53f481", width=10)
-        index_of_obj = get_oval_obj_key(a, b, current_player)
-        canvas.bind("<Motion>", lambda event: bring_oval_in_motion(event, index_of_obj))
-    elif check_moving_condition(a, b, xprev, yprev):
-        move_a_piece(a, b, xprev, yprev)
-        canvas.unbind("<Motion>")
-        if check_game():
-            show_result()
-        else:
-            show_status_bar()
-        toggle_turn()
-        xprev = yprev = None
-
 def move(event, button_release):
-    global from_which_node_y, from_which_node_x, check_status
+    global from_which_node_y, from_which_node_x, check_status, current_player
     info['text'] = ""
     if not can_move_piece() and button_release == False:
         # if pieces can't be moved and it is button release, do nothing because there is already button press
         # to do a thing
         return 0
-    global current_player, xprev, yprev
+    global xprev, yprev
     a, b = get_nearest_node(event.x, event.y)
+    if (a is None  or not is_empty(a, b)) and can_move_piece() and check_status == 1:
+        check_status = 0
+        canvas.unbind("<Motion>")
+        if from_which_node_x is None:
+            return
+        index_of_obj = get_oval_obj_key(from_which_node_x, from_which_node_y, current_player)
+        canvas.coords(index_of_obj, from_which_node_x - 30, from_which_node_y - 30, from_which_node_x + 30, from_which_node_y + 30)
     if a is None:
         return
     if not can_move_piece() and not all_filled() and is_empty(a, b) and button_release:
-        print("creating here")
         oval_obj = canvas.create_oval(a-30, b-30, a+30, b+30, fill=current_player.color_notation)
         current_player.owned_position[oval_obj] = (a, b)
         current_player.remaining_piece -= 1
@@ -270,10 +219,6 @@ def move(event, button_release):
         show_status_bar()
         return
     if can_move_piece():
-        if button_release:
-            print("released click")
-        else:
-            print("Pressed click")
         if button_release == False:
             # grab the needed node from which node
             if not is_movable(a, b):
@@ -289,56 +234,28 @@ def move(event, button_release):
                 check_status = 0
                 return
             check_status = 1
+            index_of_obj = get_oval_obj_key(from_which_node_x, from_which_node_y, current_player)
+            canvas.bind("<Motion>", lambda event: bring_oval_in_motion(event, index_of_obj))
             return
-        if button_release == True:
+        else:
             # put the grabbed node to which node
             if check_status != 1:
                 return
             a, b = get_nearest_node(event.x, event.y)
             if a is None:
+                canvas.unbind("<Motion>")
+                index_of_obj = get_oval_obj_key(from_which_node_x, from_which_node_y, current_player)
+                canvas.coords(index_of_obj, from_which_node_x - 30, from_which_node_y - 30, from_which_node_x + 30,
+                              from_which_node_y + 30)
                 check_status = 0
                 return
             if check_moving_condition(a, b, from_which_node_x, from_which_node_y):
+                canvas.unbind("<Motion>")
                 move_a_piece(a, b, from_which_node_x, from_which_node_y)
+                check_status = 0
                 if check_game():
                     show_result()
                 toggle_turn()
-            return
-
-    # if can_move_piece():
-    #     if not is_movable(a, b):
-    #         from_which_node_x = from_which_node_y = xprev = yprev = None
-    #         info['text'] = "Immovable"
-    #         return
-    #     if button_release == True and xprev:
-    #         to_which_node_x, to_which_node_y = get_nearest_node(event.x, event.y)
-    #         print("want to move from ", from_which_node_x, from_which_node_y, "to ", to_which_node_x, to_which_node_y)
-    #         if check_moving_condition(to_which_node_x, to_which_node_y, from_which_node_x, from_which_node_y):
-    #             move_a_piece(to_which_node_x, to_which_node_y, from_which_node_x, from_which_node_y)
-    #             # canvas.unbind("<Motion>")
-    #             if check_game():
-    #                 show_result()
-    #                 return
-    #             toggle_turn()
-    #         else:
-    #             canvas.unbind("<Motion>")
-    #             print("couldn't move this piece")
-    #     else:
-    #         xprev, yprev = event.x, event.y
-    #         from_which_node_x, from_which_node_y = get_nearest_node(xprev, yprev)
-    #         if not own_cell(from_which_node_x, from_which_node_y, current_player):
-    #             print("this is not your piece")
-    #             xprev = None
-    #             return
-    #         if from_which_node_x is None:
-    #             xprev, yprev = None, None
-    #             print("terminated with xprev and yprev as",xprev, yprev)
-    #             return
-    #         if is_empty(from_which_node_x, from_which_node_y):
-    #             xprev, yprev = None, None
-    #             print("terminated with xprev and yprev as",xprev, yprev)
-            # index_of_obj = get_oval_obj_key(from_which_node_x, from_which_node_y, current_player)
-            # canvas.bind("<Motion>", lambda event: bring_oval_in_motion(event, index_of_obj))
     print("--------------------")
 
 
@@ -376,8 +293,6 @@ info = Label(root, text="", font="Times 12 bold")
 info.pack(side=RIGHT)
 status = Label(root, text="  Turn:  " + player_1.color_notation , font="Times 12 bold", padx=0, pady=5, bd=6)
 status.pack(side=LEFT, fill=X)
-# canvas.bind('<Double-Button-1>', double_click_update)
-# canvas.bind('<ButtonPress-1>', single_click_update)
 canvas.bind('<ButtonPress-1>', lambda event: move(event, False))
 canvas.bind('<ButtonRelease-1>', lambda event: move(event, True))
 help_game()
