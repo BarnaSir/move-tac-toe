@@ -202,7 +202,7 @@ def fill_pieces(a, b, current_player):
     Fills the empty location with the pieces of current player.
     """
     oval_obj = canvas.create_oval(a-30, b-30, a+30, b+30, fill=current_player.color_notation)
-    playsound("filling.wav")
+    playsound("sounds/filling.wav")
     current_player.owned_position[oval_obj] = (a, b)
     current_player.remaining_piece -= 1
     if check_game():
@@ -235,7 +235,7 @@ def move_pieces(a, b, from_x, from_y):
     current user has won the game. If the game is not over, then it toggles the turn.
     """
     canvas.unbind("<Motion>")
-    playsound("moving.wav")
+    playsound("sounds/moving.wav")
     move_a_piece(a, b, from_x, from_y)
     if check_game():
         show_result()
@@ -323,7 +323,6 @@ def check_game():
     """
     Checks if the win condition of game is met.
     Returns true if three coordinates of current player are collinear.
-    :return:
     """
     global current_player
     coordinates = tuple(current_player.owned_position.values())
