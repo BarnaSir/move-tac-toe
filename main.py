@@ -19,7 +19,8 @@ ONE_TIME_CONSTANT = 1
 ALLOW_SINGLE_CLICK = 1
 xRelease, yRelease = None, None
 from_y = from_x = None
-picked = 0
+picked_status = 0
+debug = 0
 
 POINTS = [
     (GAP, GAP), (WIDTH//2, GAP), (WIDTH-GAP, GAP),
@@ -61,6 +62,10 @@ def draw_grid():
 
 
 def get_nearest_node(x, y):
+    """
+    Grabs the nearest location if it's clicked within the near boundary of any location.
+    If the given coordinate can't be associated with any location, it returns None, None.
+    """
     temp = sys.maxsize
     for i in range(9):
         distance = hypot(x-POINTS[i][0], y-POINTS[i][1])
@@ -73,29 +78,38 @@ def get_nearest_node(x, y):
 
 
 def own_cell(x, y, player):
+    """
+    Returns True if the given coordinate is associated
+    with current player.
+    """
     if (x, y) in player.owned_position.values():
         return 1
 
 
 def get_oval_obj_key(x, y, player):
+    """
+    Returns the index of the piece (determined from given coordinates)
+    """
     for key, val in player.owned_position.items():
         if val == (x, y):
             return key
 
 
 def is_empty(x, y):
+    """
+    Checks if the node determined from given coordinate is empty.
+    """
     if player_1.owned_position or player_2.owned_position:
         if (x, y) in player_1.owned_position.values() or (x, y) in player_2.owned_position.values():
             return 0
     return 1
 
 
-def all_filled():
-    if (player_1.remaining_piece) == (player_2.remaining_piece) == 0:
-        return 1
-
-
 def is_movable(a, b):
+    """
+    It checks whether the selected object is movable.
+    Any object is movable if it's valid move has empty location.
+    """
     current_index = POINTS.index((a, b))
     for i in VALID_MOVES[current_index]:
         x, y = POINTS[i]
@@ -105,12 +119,19 @@ def is_movable(a, b):
 
 
 def can_move_piece():
+    """
+    Determines whether the filling of piece is finished and pieces can be moved.
+    """
     info['text'] = ""
     if player_1.remaining_piece == 0 and player_2.remaining_piece == 0:
         return 1
 
 
 def valid_move_has_empty_cell(tupp):
+    """
+    Checks if the move is completely valid by checking whether
+    the destined location is empty.
+    """
     for i in tupp:
         x, y = POINTS[i]
         if is_empty(x, y):
@@ -119,6 +140,9 @@ def valid_move_has_empty_cell(tupp):
 
 
 def legal_move(x, y, x_prev=None, y_prev=None):
+    """
+    Returns True if the move is valid. Otherwise, False.
+    """
     if x_prev == x and y_prev == y:
         return True
     current_index = POINTS.index((x, y))
@@ -130,22 +154,37 @@ def legal_move(x, y, x_prev=None, y_prev=None):
 
 
 def check_moving_condition(a, b, x_prev, y_prev):
+    """
+    Returns true if move condition is valid.
+    """
     return a is not None and x_prev is not None and is_empty(a, b) and legal_move(a, b, x_prev, y_prev)
 
 
 def bring_oval_in_motion(event, obj_index):
+    """
+    Brings the currently selected piece into motion by floating it.
+    """
     canvas.coords(obj_index, event.x-30, event.y-30, event.x+30, event.y+30)
 
 
 def stop_floating_obj(from_x, from_y, current_player):
+    """
+    If a piece is made to move to the invalid location, then this function is called.
+    It will unbind the motion, thus stoping the motion of floating object and relocates
+    to the original place.
+    """
     canvas.unbind("<Motion>")
     index_of_obj = get_oval_obj_key(from_x, from_y, current_player)
+    if index_of_obj is None:
+        return 0
     canvas.coords(index_of_obj, from_x - 30, from_y - 30, from_x + 30,
                   from_y + 30)
-    return 0
 
 
 def move_a_piece(a, b, x_prev, y_prev):
+    """
+    Creates a piece in a new position and deletes from old position.
+    """
     oval_obj = canvas.create_oval(a-30, b-30, a+30, b+30, fill=current_player.color_notation)
     canvas.delete(get_oval_obj_key(x_prev, y_prev, current_player))
     current_player.owned_position.pop(get_oval_obj_key(x_prev, y_prev, current_player), None)
@@ -159,6 +198,9 @@ def toggle_turn():
 
 
 def fill_pieces(a, b, current_player):
+    """
+    Fills the empty location with the pieces of current player.
+    """
     oval_obj = canvas.create_oval(a-30, b-30, a+30, b+30, fill=current_player.color_notation)
     playsound("filling.wav")
     current_player.owned_position[oval_obj] = (a, b)
@@ -169,13 +211,29 @@ def fill_pieces(a, b, current_player):
     toggle_turn()
 
 
+def all_filled():
+    """
+    Determines whether the filling of pieces is completed, and
+    the pieces can now be moved.
+    """
+    if (player_1.remaining_piece) == (player_2.remaining_piece) == 0:
+        return 1
+
+
 def float_piece(from_x, from_y, current_player):
+    """
+    Brings the current piece into motion by using bring_oval_into_motion.
+    """
     index_of_obj = get_oval_obj_key(from_x, from_y, current_player)
     canvas.bind("<Motion>", lambda event: bring_oval_in_motion(event, index_of_obj))
     return 1
 
 
 def move_pieces(a, b, from_x, from_y):
+    """
+    Moves piece, unbinds the motion event listener and checks if the
+    current user has won the game. If the game is not over, then it toggles the turn.
+    """
     canvas.unbind("<Motion>")
     playsound("moving.wav")
     move_a_piece(a, b, from_x, from_y)
@@ -185,36 +243,57 @@ def move_pieces(a, b, from_x, from_y):
     toggle_turn()
 
 
-def is_valid_cord(a):
-    if a is None:
-        return 0
-
-
 def prevent_function(a, b, current_player):
-    if not is_movable(a, b):
-        info['text'] = "Immovable"
-        return 1
+    """
+    Determines whether the pick current player is trying to make is valid. Valid pick is one if
+    current user owns the piece and it is movable.
+    """
     if not own_cell(a, b, current_player):
+        info['text'] = "Not your piece.  "
+        return 1
+    if not is_movable(a, b):
+        info['text'] = "Immovable!  "
         return 1
 
 
-def is_invalid_drop(a, b, picked):
-    return a is None or ((a is None  or not is_empty(a, b)) and can_move_piece() and picked == 1)
+def is_invalid_drop(a, b, picked_status):
+    """
+    Returns whether the floating object is dropped in the legal valid place.
+    """
+    return a is None or ((a is None  or not is_empty(a, b)) and can_move_piece() and picked_status == 1)
 
 
 def bypass_release_once(button_release):
+    """
+    Clicking/dragging consists of two events:- ButtonPress and ButtonRelease.
+    During each event, the function move is called. However, during filling of pieces,
+    only one event should call the move function. Hence, to dismiss the calling of move
+    function during ButtonPress, which can be programmatically represented as
+    (if button_release == False), we don't allow any code of move function to be
+    executed.
+    """
     return not can_move_piece() and button_release == False
 
 
 def move(event, button_release):
-    global from_y, from_x, picked, current_player
+    """
+    It fills the pieces into the grid followed by moving of the pieces.
+    It does the filling only when the ButtonPress corresponds to an empty(valid) location.
+    After completion of filling, this function grabs the piece owned by current user during
+    the ButtonPress and moves the very piece into the empty location during the ButtonRelease.
+    Moving process is completed only when the valid conditions are met.
+
+    picked_status variable stores the value 1 if a piece is successfully picked. Otherwise, zero(default).
+    """
+    global from_y, from_x, picked_status, current_player
     a, b = get_nearest_node(event.x, event.y)
 
     if bypass_release_once(button_release):
         return
-    if is_invalid_drop(a, b, picked):
-        picked = stop_floating_obj(from_x, from_y, current_player)
+    if is_invalid_drop(a, b, picked_status):
+        picked_status = stop_floating_obj(from_x, from_y, current_player)
         return
+
     if not can_move_piece():
         if not all_filled() and is_empty(a, b) and button_release:
             fill_pieces(a, b, current_player)
@@ -225,22 +304,27 @@ def move(event, button_release):
 
             from_x, from_y = get_nearest_node(event.x, event.y)
             if prevent_function(from_x, from_y, current_player):
-                picked = 0
+                picked_status = 0
             else:
-                picked = float_piece(from_x, from_y, current_player)
+                picked_status = float_piece(from_x, from_y, current_player)
 
         elif button_release:
 
             a, b = get_nearest_node(event.x, event.y)
-            if picked != 1:
+            if picked_status != 1:
                 return
             if check_moving_condition(a, b, from_x, from_y):
-                picked = move_pieces(a, b, from_x, from_y)
+                picked_status = move_pieces(a, b, from_x, from_y)
             else:
-                picked = stop_floating_obj(from_x, from_y, current_player)
+                picked_status = stop_floating_obj(from_x, from_y, current_player)
 
 
 def check_game():
+    """
+    Checks if the win condition of game is met.
+    Returns true if three coordinates of current player are collinear.
+    :return:
+    """
     global current_player
     coordinates = tuple(current_player.owned_position.values())
     if len(coordinates) != 3:
@@ -257,8 +341,8 @@ def help_game():
                                 "as that of Tic-Tac-Toe game except the limitation of number of pieces. "
                                 "Each player has 3 pieces and after s/he has put all the "
                                 "pieces in the board, s/he should drag the pieces. "
-                                "Single click to put the piece in the board and double click to drag. "
-                                "Double click on the position again to place the dragged piece. ")
+                                "Single click to put the piece in the board and drag to move piece from "
+                                "one place to another ")
 
 
 def close():
@@ -291,10 +375,9 @@ def new_game():
     player_1.remaining_piece = player_2.remaining_piece = 3
     player_1.owned_position = {}
     player_2.owned_position = {}
-
+    toggle_turn()
 
 new_game()
-toggle_turn()
 
 menu_bar = Menu(root)
 root.config(menu=menu_bar)
