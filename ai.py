@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
+import platform
+
 import numpy as np
+
+from utils import merge_two_dicts
 
 INF = np.inf
 
@@ -79,8 +83,14 @@ def get_possible_drags(player_1_board, player_2_board, player):
 
     for i in current_player_board.values():
         for j in VALID_MOVES[POSITIONS_TO_INDEX[i]]:
-            if INDEX_TO_POSITIONS[j] not in {**player_1_board, **player_2_board}.values():
-                possible_drags.add((i, INDEX_TO_POSITIONS[j]))
+            # for backward compatibility(<3.5)
+            if float(platform.python_version()[0:3]) < 3.5:
+                if INDEX_TO_POSITIONS[j] not in merge_two_dicts(player_1_board, player_2_board).values():
+                    possible_drags.add((i, INDEX_TO_POSITIONS[j]))
+            else:
+
+                if INDEX_TO_POSITIONS[j] not in {**player_1_board, **player_2_board}.values():
+                    possible_drags.add((i, INDEX_TO_POSITIONS[j]))
     return possible_drags
 
 def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maximizingPlayer=True):
