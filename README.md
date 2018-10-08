@@ -4,7 +4,8 @@ Extended version of tic-tac-toe game.
 <img src="https://raw.githubusercontent.com/BarnaSir/move-tac-toe/master/images/demo/game_0.png" width="420"><img src="https://raw.githubusercontent.com/BarnaSir/move-tac-toe/master/images/demo/game_1.png" width="420"> 
 
 ## Short Description:
-It is a modified form of tic-tac-toe where players can move their pieces. The objective of this game is to arrange the pieces linearly. Each player has 3 pieces to fill and move those pieces in order to achieve the objective. 
+Move-tac-toe, self-coined name for this game, is a modified form of tic-tac-toe game where the number of pieces for each player is limited to 3, and the players should move 
+their pieces after finishing up their 3 pieces. The objective of this game is to arrange the like pieces linearly and the game is won by whoever does that first by his/her pieces. 
 
 ## Requirements:
 - Python 3
@@ -12,7 +13,7 @@ It is a modified form of tic-tac-toe where players can move their pieces. The ob
 - Playsound (Python audio library)
 
 ## Dependencies
- Install tkinter by executing the following commands in the terminal.
+ Install tkinter and playsound by executing the following commands in the terminal.
 ```
 $ sudo apt-get update
 $ sudo apt-get install python3-tk
@@ -20,9 +21,12 @@ $ sudo pip install playsound
 ```
 
 ## Instructions:
-* Run main.py with python3 and the game will be started with a pop-up containing some instructions.
+* Run main.py with python3 as the interpreter(shebang would take care in our file) and the game will be started with a pop-up containing some instructions.
+```
+./main.py
+```
 * Single click will allow the filling of the pieces in the empty locations.
-* When all the pieces (total 6) are filled, then each player can move his/her respective piece by dragging.
+* When all the pieces (3 per player) of a player are filled, then each player can move his/her piece by dragging.
 
 ## Further Enhancements:
-* As of now, two players (only humans) can play with each other. However, Artificial Intelligence can be implemented so that a human player can play against the program.
+* As of now, two players (only humans) can play with each other. However, Artificial Intelligence can be implemented so that a human player can play against the computer.

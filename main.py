@@ -1,10 +1,16 @@
+#!/usr/bin/env python3
+
 import sys
+
+from collections import namedtuple
 from math import hypot
 from itertools import cycle
 from playsound import playsound
 
 from tkinter import *
 from tkinter import messagebox
+
+from ai import *
 
 root = Tk()
 root.title("Move-tac-toe")
@@ -45,14 +51,15 @@ GRID_POINTS = {
     7: (GAP, GAP, GAP, HEIGHT-GAP)
 }
 
+nt = namedtuple('Player', ['name', 'color_notation'])
 
-class Player:
+class Player(nt):
+
+    owned_position = {}
+    remaining_piece = 3
 
     def __init__(self, name, color_notation):
-        self.name = name
-        self.color_notation = color_notation
-        self.owned_position = {}
-        self.remaining_piece = 3
+        super().__init__()
 
 
 def draw_grid():
@@ -82,8 +89,7 @@ def own_cell(x, y, player):
     Returns True if the given coordinate is associated
     with current player.
     """
-    if (x, y) in player.owned_position.values():
-        return 1
+    if (x, y) in player.owned_position.values(): return 1
 
 
 def get_oval_obj_key(x, y, player):
@@ -170,7 +176,7 @@ def bring_oval_in_motion(event, obj_index):
 def stop_floating_obj(from_x, from_y, current_player):
     """
     If a piece is made to move to the invalid location, then this function is called.
-    It will unbind the motion, thus stoping the motion of floating object and relocates
+    It will unbind the motion, thus stopping the motion of floating object and relocates
     to the original place.
     """
     canvas.unbind("<Motion>")
@@ -209,15 +215,6 @@ def fill_pieces(a, b, current_player):
         show_result()
         return 1
     toggle_turn()
-
-
-def all_filled():
-    """
-    Determines whether the filling of pieces is completed, and
-    the pieces can now be moved.
-    """
-    if (player_1.remaining_piece) == (player_2.remaining_piece) == 0:
-        return 1
 
 
 def float_piece(from_x, from_y, current_player):
@@ -286,6 +283,8 @@ def move(event, button_release):
     picked_status variable stores the value 1 if a piece is successfully picked. Otherwise, zero(default).
     """
     global from_y, from_x, picked_status, current_player
+
+
     a, b = get_nearest_node(event.x, event.y)
 
     if bypass_release_once(button_release):
@@ -295,12 +294,18 @@ def move(event, button_release):
         return
 
     if not can_move_piece():
-        if not all_filled() and is_empty(a, b) and button_release:
-            fill_pieces(a, b, current_player)
+        # if is_empty(a, b) and button_release:
+        #     fill_pieces(a, b, current_player)
+
+        if button_release:
+            if is_empty(a, b):
+                fill_pieces(a, b, current_player)
+                if current_player == player_2:
+                    print('haha', Minimax(player_1.owned_position.copy(), player_2.owned_position.copy()))
 
     else:
 
-        if button_release == False and not is_empty(a, b):
+        if not button_release and not is_empty(a, b):
 
             from_x, from_y = get_nearest_node(event.x, event.y)
             if prevent_function(from_x, from_y, current_player):
@@ -315,6 +320,10 @@ def move(event, button_release):
                 return
             if check_moving_condition(a, b, from_x, from_y):
                 picked_status = move_pieces(a, b, from_x, from_y)
+                if current_player == player_2:
+                    print('player 1:', player_1.owned_position)
+                    print('player 2:', player_2.owned_position)
+                    print('haha', Minimax(player_1.owned_position.copy(), player_2.owned_position.copy()))
             else:
                 picked_status = stop_floating_obj(from_x, from_y, current_player)
 
