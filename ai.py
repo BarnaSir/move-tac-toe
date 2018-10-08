@@ -73,9 +73,9 @@ def get_possible_drags(player_1_board, player_2_board, player):
 
     # set current_player_board according to the player parameter
     if player == 1:
-        current_player_board = player_2_board
-    else:
         current_player_board = player_1_board
+    else:
+        current_player_board = player_2_board
 
     for i in current_player_board.values():
         for j in VALID_MOVES[POSITIONS_TO_INDEX[i]]:
@@ -144,11 +144,7 @@ def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maxim
         else:
 
             # creating set of possible drags
-            possible_drags = set()
-            for i in player_2_board.values():
-                for j in VALID_MOVES[POSITIONS_TO_INDEX[i]]:
-                    if INDEX_TO_POSITIONS[j] not in {**player_1_board, **player_2_board}.values():
-                        possible_drags.add((i, INDEX_TO_POSITIONS[j]))
+            possible_drags = get_possible_drags(player_1_board, player_2_board, 2)
 
             # looping through all possible drags
             for i in possible_drags:
@@ -207,11 +203,7 @@ def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maxim
         else:
 
             # creating the possible drags
-            possible_drags = set()
-            for i in player_1_board.values():
-                for j in VALID_MOVES[POSITIONS_TO_INDEX[i]]:
-                    if INDEX_TO_POSITIONS[j] not in {**player_1_board, **player_2_board}.values():
-                        possible_drags.add((i, INDEX_TO_POSITIONS[j]))
+            possible_drags = get_possible_drags(player_1_board, player_2_board, 1)
 
             # looping through all the possible drags
             for i in possible_drags:

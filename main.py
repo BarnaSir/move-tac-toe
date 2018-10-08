@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
+
+from collections import namedtuple
 from math import hypot
 from itertools import cycle
 from playsound import playsound
@@ -49,14 +51,15 @@ GRID_POINTS = {
     7: (GAP, GAP, GAP, HEIGHT-GAP)
 }
 
+nt = namedtuple('Player', ['name', 'color_notation'])
 
-class Player:
+class Player(nt):
+
+    owned_position = {}
+    remaining_piece = 3
 
     def __init__(self, name, color_notation):
-        self.name = name
-        self.color_notation = color_notation
-        self.owned_position = {}
-        self.remaining_piece = 3
+        super().__init__()
 
 
 def draw_grid():
