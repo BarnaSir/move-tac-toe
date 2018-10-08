@@ -83,14 +83,9 @@ def get_possible_drags(player_1_board, player_2_board, player):
 
     for i in current_player_board.values():
         for j in VALID_MOVES[POSITIONS_TO_INDEX[i]]:
-            # for backward compatibility(<3.5)
-            if float(platform.python_version()[0:3]) < 3.5:
-                if INDEX_TO_POSITIONS[j] not in merge_two_dicts(player_1_board, player_2_board).values():
-                    possible_drags.add((i, INDEX_TO_POSITIONS[j]))
-            else:
 
-                if INDEX_TO_POSITIONS[j] not in {**player_1_board, **player_2_board}.values():
-                    possible_drags.add((i, INDEX_TO_POSITIONS[j]))
+            if INDEX_TO_POSITIONS[j] not in merge_two_dicts(player_1_board, player_2_board).values():
+                possible_drags.add((i, INDEX_TO_POSITIONS[j]))
     return possible_drags
 
 def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maximizingPlayer=True):
@@ -116,7 +111,6 @@ def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maxim
             else:
                 return -1000-depth, None
         else:
-            print('Draw condition:', player_1_board, player_2_board)
             return 0, None
 
     if maximizingPlayer:
@@ -143,7 +137,6 @@ def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maxim
 
                     # best move is set if the node is at the root
                     if depth == DEPTH:
-                        print('depth DEPTH put max step value', depth, DEPTH, i, value)
                         best_move = i
 
                 # reverting the move

@@ -2,3 +2,5 @@ temp/
 .idea/
 .betterdialogs/
 __pycache__/
+venv/
+test/

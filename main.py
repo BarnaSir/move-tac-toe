@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
 
 import sys
+import time
 
 from collections import namedtuple
 from math import hypot
@@ -208,9 +208,9 @@ def fill_pieces(a, b, current_player):
     Fills the empty location with the pieces of current player.
     """
     oval_obj = canvas.create_oval(a-30, b-30, a+30, b+30, fill=current_player.color_notation)
-    playsound("sounds/filling.wav")
     current_player.owned_position[oval_obj] = (a, b)
     current_player.remaining_piece -= 1
+    playsound("sounds/filling.wav")
     if check_game():
         show_result()
         return 1
@@ -232,8 +232,8 @@ def move_pieces(a, b, from_x, from_y):
     current user has won the game. If the game is not over, then it toggles the turn.
     """
     canvas.unbind("<Motion>")
-    playsound("sounds/moving.wav")
     move_a_piece(a, b, from_x, from_y)
+    playsound("sounds/moving.wav")
     if check_game():
         show_result()
         return 0
@@ -294,14 +294,13 @@ def move(event, button_release):
         return
 
     if not can_move_piece():
-        # if is_empty(a, b) and button_release:
-        #     fill_pieces(a, b, current_player)
 
         if button_release:
             if is_empty(a, b):
                 fill_pieces(a, b, current_player)
                 if current_player == player_2:
-                    print('haha', Minimax(player_1.owned_position.copy(), player_2.owned_position.copy()))
+                    ai_x, ai_y = Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
+                    fill_pieces(ai_x, ai_y, current_player)
 
     else:
 
@@ -321,9 +320,8 @@ def move(event, button_release):
             if check_moving_condition(a, b, from_x, from_y):
                 picked_status = move_pieces(a, b, from_x, from_y)
                 if current_player == player_2:
-                    print('player 1:', player_1.owned_position)
-                    print('player 2:', player_2.owned_position)
-                    print('haha', Minimax(player_1.owned_position.copy(), player_2.owned_position.copy()))
+                    ((from_ai_x, from_ai_y), (to_ai_x, to_ai_y)) = Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
+                    move_pieces(to_ai_x, to_ai_y, from_ai_x, from_ai_y)
             else:
                 picked_status = stop_floating_obj(from_x, from_y, current_player)
 
