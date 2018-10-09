@@ -121,7 +121,7 @@ def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maxim
 
             possible_moves = ALL_POSITIONS - set(player_1_board.values()) - set(player_2_board.values())
 
-            max_key = max(list(player_1_board.keys()) + list(player_2_board.keys()))
+            max_key = max([8] + list(player_1_board.keys()) + list(player_2_board.keys()))
 
             for i in possible_moves:
 
@@ -156,7 +156,7 @@ def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maxim
                 dict_temp = dict((j, i) for i, j in player_2_board.items())
                 dict_temp.pop(i[0], None)
                 player_2_board = dict((j, i) for i, j in dict_temp.items())
-                max_key = max(list(player_1_board.keys()) + list(player_2_board.keys()))
+                max_key = max([8] + list(player_1_board.keys()) + list(player_2_board.keys()))
                 player_2_board[max_key+1] = i[1]
 
                 # calculating the value of the state
@@ -181,7 +181,7 @@ def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maxim
 
             # creating the possible put pieces moves
             possible_moves = ALL_POSITIONS - set(player_1_board.values()) - set(player_2_board.values())
-            max_key = max(list(player_2_board.keys()) + list(player_1_board.keys()))
+            max_key = max([8] + list(player_2_board.keys()) + list(player_1_board.keys()))
 
             # looping through all possible moves
             for i in possible_moves:
@@ -215,7 +215,7 @@ def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maxim
                 dict_temp = dict((j, i) for i, j in player_1_board.items())
                 dict_temp.pop(i[0], None)
                 player_1_board = dict((j, i) for i, j in dict_temp.items())
-                max_key = max(list(player_1_board.keys()) + list(player_2_board.keys()))
+                max_key = max([8] + list(player_1_board.keys()) + list(player_2_board.keys()))
                 player_1_board[max_key+1] = i[1]
 
                 # calculating the state of the game using the minimax algorithm

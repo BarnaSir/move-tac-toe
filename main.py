@@ -1,6 +1,5 @@
 
 import sys
-import time
 
 from collections import namedtuple
 from math import hypot
@@ -12,13 +11,7 @@ from tkinter import messagebox
 
 from ai import *
 
-root = Tk()
-root.title("Move-tac-toe")
-root.resizable(False, False)
-frame = Frame(root, width=800, height=700)
-frame.pack()
-canvas = Canvas(frame, width=620, height=600, bg="white")
-canvas.pack(side=BOTTOM)
+
 WIDTH = HEIGHT = 600
 GAP = 50
 ONE_TIME_CONSTANT = 1
@@ -62,7 +55,7 @@ class Player(nt):
         super().__init__()
 
 
-def draw_grid():
+def draw_grid(canvas):
     for i in range(8):
         canvas.create_line(GRID_POINTS[i][0], GRID_POINTS[i][1], GRID_POINTS[i][2],
                            GRID_POINTS[i][3], width=4)
@@ -299,6 +292,10 @@ def move(event, button_release):
             if is_empty(a, b):
                 fill_pieces(a, b, current_player)
                 if current_player == player_2:
+                    if can_move_piece():
+                        ((from_ai_x, from_ai_y), (to_ai_x, to_ai_y)) = Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
+                        move_pieces(to_ai_x, to_ai_y, from_ai_x, from_ai_y)
+                        return
                     ai_x, ai_y = Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
                     fill_pieces(ai_x, ai_y, current_player)
 
@@ -360,38 +357,69 @@ def show_result():
     status['text'] = "Game Over!  " + current_player.color_notation + " won the game"
     canvas.unbind("<ButtonPress-1>")
     canvas.unbind("<ButtonRelease-1>")
-    messagebox.showinfo("Game Over!!! ", current_player.color_notation + " won the game")
+    user_response = messagebox.askyesno("Game Over!!! ", current_player.color_notation + " won the game. Do you want to play another game?")
+    root.destroy()
+    if user_response:
+        ask_turn()
 
 
 player_1 = Player("Sudarshan", "Blue")
 player_2 = Player("Barna", "Red")
 players = cycle([player_1, player_2])
-info = Label(root, text="", font="Times 12 bold")
-info.pack(side=RIGHT)
-status = Label(root, text="  Turn:  " + player_1.color_notation , font="Times 12 bold", padx=0, pady=5, bd=6)
-status.pack(side=LEFT, fill=X)
 
 
-def new_game():
-    canvas.delete(ALL)
-    draw_grid()
-    status['text'] = ""
-    canvas.bind('<ButtonPress-1>', lambda event: move(event, False))
-    canvas.bind('<ButtonRelease-1>', lambda event: move(event, True))
+def new_game(who_plays_first):
+    global current_player, canvas, info, status, root
     player_1.remaining_piece = player_2.remaining_piece = 3
     player_1.owned_position = {}
     player_2.owned_position = {}
+    root.destroy()
+
+    root = Tk()
+    root.title("Move-tac-toe")
+    root.resizable(False, False)
+    frame = Frame(root, width=800, height=700)
+    frame.pack()
+    canvas = Canvas(frame, width=620, height=600, bg="white")
+    canvas.pack(side=BOTTOM)
+
+    menu_bar = Menu(root)
+    root.config(menu=menu_bar)
+
+    file_menu = Menu(menu_bar, tearoff=0)
+    file_menu.add_command(label="New Game", command=ask_turn)
+    file_menu.add_command(label="Exit", command=close)
+    menu_bar.add_cascade(label="File", menu=file_menu)
+    menu_bar.add_command(label="Instructions", command=help_game)
+
+
+    info = Label(root, text="", font="Times 12 bold")
+    status = Label(root, text="  Turn:  " + player_1.color_notation, font="Times 12 bold", padx=0, pady=5, bd=6)
+    info.pack(side=RIGHT)
+    status.pack(side=LEFT, fill=X)
+    canvas.delete(ALL)
+    draw_grid(canvas)
+    canvas.bind('<ButtonPress-1>', lambda event: move(event, False))
+    canvas.bind('<ButtonRelease-1>', lambda event: move(event, True))
+
     toggle_turn()
+    if not who_plays_first:
+        toggle_turn()
+        ai_x, ai_y = Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
+        fill_pieces(ai_x, ai_y, current_player)
 
-new_game()
 
-menu_bar = Menu(root)
-root.config(menu=menu_bar)
+def ask_turn():
+    global human_turn, ai_turn, root
 
-file_menu =  Menu(menu_bar, tearoff=0)
-file_menu.add_command(label="New Game", command=new_game)
-file_menu.add_command(label="Exit", command=close)
-menu_bar.add_cascade(label="File", menu=file_menu)
-menu_bar.add_command(label="Instructions", command=help_game)
+    root = Tk()
+    root.title("Move-tac-toe")
+    root.resizable(False, False)
+    label = Label(text="Who plays first?", padx=90, pady=20).pack()
+    human_turn = Button(root, text="Human", padx=50, pady=30, command=lambda: new_game(1)).pack(side=TOP)
+    ai_turn = Button(root, text="AI", padx=65, pady=30, command=lambda: new_game(0)).pack(side=TOP)
+
+
+ask_turn()
 
 root.mainloop()
