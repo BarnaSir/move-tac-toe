@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import platform
 
 import numpy as np
@@ -29,7 +28,7 @@ POSITIONS_TO_INDEX = {
 INDEX_TO_POSITIONS = dict((j, i) for i, j in POSITIONS_TO_INDEX.items())
 
 best_move = None
-DEPTH = 5
+DEPTH = 7
 
 
 def is_game_over(player_1_board, player_2_board):
@@ -88,7 +87,7 @@ def get_possible_drags(player_1_board, player_2_board, player):
                 possible_drags.add((i, INDEX_TO_POSITIONS[j]))
     return possible_drags
 
-def Minimax(player_1_board, player_2_board, depth=5, alpha=-INF, beta=INF, maximizingPlayer=True):
+def Minimax(player_1_board, player_2_board, depth=7, alpha=-INF, beta=INF, maximizingPlayer=True):
     """
     Minimax algorithm with alpha-beta pruning.
     :param player_1_board: containing board information of player_1
