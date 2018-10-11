@@ -11,7 +11,8 @@ from tkinter import messagebox
 
 from ai import *
 
-
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 700
 WIDTH = HEIGHT = 600
 GAP = 50
 ONE_TIME_CONSTANT = 1
@@ -368,6 +369,51 @@ player_2 = Player("Barna", "Red")
 players = cycle([player_1, player_2])
 
 
+def ask_turn():
+    global human_turn, ai_turn, root
+    root = Tk()
+    root.title("Move-tac-toe")
+    root.resizable(False, False)
+
+    frame = Frame(root, width=800, height=700)
+    frame.pack()
+    canvas = Canvas(frame, width=800, height=700, bg="white")
+    canvas.pack(side=BOTTOM)
+
+    canvas.create_rectangle(
+        0, 0,
+        WINDOW_WIDTH, WINDOW_HEIGHT,
+        width=int(WINDOW_WIDTH / 15),
+        fill='#fff',
+        outline='#bbb',
+    )
+
+    canvas.create_text(
+        WINDOW_WIDTH / 2,
+        4 * WINDOW_HEIGHT / 10 - 100,
+        text='MOVE TAC TOE', fill='#222',
+        font=('Times', int(-(WINDOW_WIDTH+30) / 12), 'bold')
+    )
+
+
+    canvas.create_text(
+        int(WINDOW_WIDTH / 2),
+        int(WINDOW_WIDTH / 2 - 80),
+        text='Who plays first?', fill='#111',
+        font=('Franklin Gothic', int(-1200 / 40))
+    )
+
+
+    ai_turn = Button(root, text="AI", padx=65, pady=30, command=lambda: new_game(0))
+    ai_turn.configure(width=10, font="Times 14 bold", activebackground="#33B5E5", relief=FLAT)
+
+    human_turn = Button(root, text="Human", padx=50, pady=30, command=lambda: new_game(1))
+    human_turn.configure(width=10, font="Times 14 bold", activebackground="#33B5E5", relief=FLAT)
+
+    canvas.create_window(460, 430, anchor=NW, window=ai_turn)
+    canvas.create_window(140, 430, anchor=NW, window=human_turn)
+
+
 def new_game(who_plays_first):
     global current_player, canvas, info, status, root
     player_1.remaining_piece = player_2.remaining_piece = 3
@@ -387,7 +433,6 @@ def new_game(who_plays_first):
     root.config(menu=menu_bar)
 
     file_menu = Menu(menu_bar, tearoff=0)
-    file_menu.add_command(label="New Game", command=ask_turn)
     file_menu.add_command(label="Exit", command=close)
     menu_bar.add_cascade(label="File", menu=file_menu)
     menu_bar.add_command(label="Instructions", command=help_game)
@@ -409,17 +454,5 @@ def new_game(who_plays_first):
         fill_pieces(ai_x, ai_y, current_player)
 
 
-def ask_turn():
-    global human_turn, ai_turn, root
-
-    root = Tk()
-    root.title("Move-tac-toe")
-    root.resizable(False, False)
-    label = Label(text="Who plays first?", padx=90, pady=20).pack()
-    human_turn = Button(root, text="Human", padx=50, pady=30, command=lambda: new_game(1)).pack(side=TOP)
-    ai_turn = Button(root, text="AI", padx=65, pady=30, command=lambda: new_game(0)).pack(side=TOP)
-
-
 ask_turn()
-
 root.mainloop()
