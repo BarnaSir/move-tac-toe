@@ -11,7 +11,8 @@ from tkinter import messagebox
 
 from ai import *
 
-
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 700
 WIDTH = HEIGHT = 600
 GAP = 50
 ONE_TIME_CONSTANT = 1
@@ -370,7 +371,6 @@ players = cycle([player_1, player_2])
 
 def ask_turn():
     global human_turn, ai_turn, root
-
     root = Tk()
     root.title("Move-tac-toe")
     root.resizable(False, False)
@@ -380,28 +380,35 @@ def ask_turn():
     canvas = Canvas(frame, width=800, height=700, bg="white")
     canvas.pack(side=BOTTOM)
 
+    canvas.create_rectangle(
+        0, 0,
+        WINDOW_WIDTH, WINDOW_HEIGHT,
+        width=int(WINDOW_WIDTH / 15),
+        fill='#fff',
+        outline='#bbb',
+    )
 
     canvas.create_text(
-        800 / 2,
-        4 * 700 / 10 - 100,
+        WINDOW_WIDTH / 2,
+        4 * WINDOW_HEIGHT / 10 - 100,
         text='MOVE TAC TOE', fill='#222',
-        font=('Arial', int(-800 / 12), 'bold')
+        font=('Times', int(-(WINDOW_WIDTH+30) / 12), 'bold')
     )
 
 
     canvas.create_text(
-        int(800 / 2),
-        int(800 / 2 - 80),
+        int(WINDOW_WIDTH / 2),
+        int(WINDOW_WIDTH / 2 - 80),
         text='Who plays first?', fill='#111',
-        font=('Franklin Gothic', int(-800 / 40))
+        font=('Franklin Gothic', int(-1200 / 40))
     )
 
 
     ai_turn = Button(root, text="AI", padx=65, pady=30, command=lambda: new_game(0))
-    ai_turn.configure(width=10, font="14", activebackground="#33B5E5", relief=FLAT)
+    ai_turn.configure(width=10, font="Times 14 bold", activebackground="#33B5E5", relief=FLAT)
 
     human_turn = Button(root, text="Human", padx=50, pady=30, command=lambda: new_game(1))
-    human_turn.configure(width=10, font="14", activebackground="#33B5E5", relief=FLAT)
+    human_turn.configure(width=10, font="Times 14 bold", activebackground="#33B5E5", relief=FLAT)
 
     canvas.create_window(460, 430, anchor=NW, window=ai_turn)
     canvas.create_window(140, 430, anchor=NW, window=human_turn)
@@ -412,7 +419,6 @@ def new_game(who_plays_first):
     player_1.remaining_piece = player_2.remaining_piece = 3
     player_1.owned_position = {}
     player_2.owned_position = {}
-    print("should be destroyed")
     root.destroy()
 
     root = Tk()
