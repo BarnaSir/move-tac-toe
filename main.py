@@ -4,6 +4,8 @@ import sys
 from collections import namedtuple
 from math import hypot
 from itertools import cycle
+from random import randint
+
 from playsound import playsound
 
 from tkinter import *
@@ -194,7 +196,7 @@ def move_a_piece(a, b, x_prev, y_prev):
 def toggle_turn():
     global current_player
     current_player = players.__next__()
-    status['text'] = "  Turn: " + current_player.color_notation
+    # status['text'] = "  Turn: " + current_player.color_notation
 
 
 def fill_pieces(a, b, current_player):
@@ -266,6 +268,21 @@ def bypass_release_once(button_release):
     return not can_move_piece() and button_release == False
 
 
+def dont_allow_first_click_in_center(a, b):
+    if (player_1.remaining_piece == player_2.remaining_piece == 3) and (a == WIDTH/2 and b == HEIGHT/2):
+        status['text'] = "  First move can't be at the middle.  "
+        return 1
+
+
+def ai_fill():
+    if (player_1.remaining_piece == player_2.remaining_piece == 3):
+        # make the first move random
+        ai_x, ai_y = POINTS[randint(0,8)]
+    else:
+        ai_x, ai_y = Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
+    fill_pieces(ai_x, ai_y, current_player)
+
+
 def move(event, button_release):
     """
     It fills the pieces into the grid followed by moving of the pieces.
@@ -278,11 +295,11 @@ def move(event, button_release):
     """
     global from_y, from_x, picked_status, current_player
 
-
     a, b = get_nearest_node(event.x, event.y)
 
     if bypass_release_once(button_release):
         return
+
     if is_invalid_drop(a, b, picked_status):
         picked_status = stop_floating_obj(from_x, from_y, current_player)
         return
@@ -291,14 +308,15 @@ def move(event, button_release):
 
         if button_release:
             if is_empty(a, b):
+                if dont_allow_first_click_in_center(a, b):
+                    return
                 fill_pieces(a, b, current_player)
-                if current_player == player_2:
-                    if can_move_piece():
-                        ((from_ai_x, from_ai_y), (to_ai_x, to_ai_y)) = Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
-                        move_pieces(to_ai_x, to_ai_y, from_ai_x, from_ai_y)
-                        return
-                    ai_x, ai_y = Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
-                    fill_pieces(ai_x, ai_y, current_player)
+                if not can_move_piece():
+                    ai_fill()
+                else:
+                    ((from_ai_x, from_ai_y), (to_ai_x, to_ai_y)) = \
+                    Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
+                    move_pieces(to_ai_x, to_ai_y, from_ai_x, from_ai_y)
 
     else:
 
@@ -322,6 +340,8 @@ def move(event, button_release):
                     move_pieces(to_ai_x, to_ai_y, from_ai_x, from_ai_y)
             else:
                 picked_status = stop_floating_obj(from_x, from_y, current_player)
+    print("player_1 ==> ", player_1.owned_position)
+    print("player_2 ==> ", player_2.owned_position)
 
 
 def check_game():
@@ -346,7 +366,7 @@ def help_game():
                                 "Each player has 3 pieces and after s/he has put all the "
                                 "pieces in the board, s/he should drag the pieces. "
                                 "Single click to put the piece in the board and drag to move piece from "
-                                "one place to another ")
+                                "one place to another. First move can't be at the middle. ")
 
 
 def close():
@@ -362,11 +382,6 @@ def show_result():
     root.destroy()
     if user_response:
         ask_turn()
-
-
-player_1 = Player("Sudarshan", "Blue")
-player_2 = Player("Barna", "Red")
-players = cycle([player_1, player_2])
 
 
 def ask_turn():
@@ -395,14 +410,12 @@ def ask_turn():
         font=('Times', int(-(WINDOW_WIDTH+30) / 12), 'bold')
     )
 
-
     canvas.create_text(
         int(WINDOW_WIDTH / 2),
         int(WINDOW_WIDTH / 2 - 80),
         text='Who plays first?', fill='#111',
         font=('Franklin Gothic', int(-1200 / 40))
     )
-
 
     ai_turn = Button(root, text="AI", padx=65, pady=30, command=lambda: new_game(0))
     ai_turn.configure(width=10, font="Times 14 bold", activebackground="#33B5E5", relief=FLAT)
@@ -415,7 +428,10 @@ def ask_turn():
 
 
 def new_game(who_plays_first):
-    global current_player, canvas, info, status, root
+    global current_player, canvas, info, status, root, players, player_1, player_2
+    player_1 = Player("Sudarshan", "Blue")
+    player_2 = Player("Barna", "Red")
+    players = cycle([player_1, player_2])
     player_1.remaining_piece = player_2.remaining_piece = 3
     player_1.owned_position = {}
     player_2.owned_position = {}
@@ -439,7 +455,7 @@ def new_game(who_plays_first):
 
 
     info = Label(root, text="", font="Times 12 bold")
-    status = Label(root, text="  Turn:  " + player_1.color_notation, font="Times 12 bold", padx=0, pady=5, bd=6)
+    status = Label(root, text="  Make your move  ", font="Times 12 bold", padx=0, pady=5, bd=6)
     info.pack(side=RIGHT)
     status.pack(side=LEFT, fill=X)
     canvas.delete(ALL)
@@ -450,8 +466,7 @@ def new_game(who_plays_first):
     toggle_turn()
     if not who_plays_first:
         toggle_turn()
-        ai_x, ai_y = Minimax(player_1.owned_position.copy(), player_2.owned_position.copy())[1]
-        fill_pieces(ai_x, ai_y, current_player)
+        ai_fill()
 
 
 ask_turn()
