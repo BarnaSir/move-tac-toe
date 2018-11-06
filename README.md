@@ -5,7 +5,7 @@ Extended version of tic-tac-toe game.
 
 ## Short Description:
 Move-tac-toe, self-coined name for this game, is a modified form of tic-tac-toe game where the number of pieces for each player is limited to 3, and the players should move 
-their pieces after finishing up their 3 pieces. The objective of this game is to arrange the like pieces linearly and the game is won by whoever does that first by his/her pieces. 
+their pieces after finishing up their 3 pieces. The objective of this game is to arrange the like pieces linearly and the game is won by whoever does that first with his/her pieces. User can play against AI.
 
 ## Requirements:
 - Python 3
@@ -27,6 +27,3 @@ $ sudo pip install playsound
 ```
 * Single click will allow the filling of the pieces in the empty locations.
 * When all the pieces (3 per player) of a player are filled, then each player can move his/her piece by dragging.
-
-## Further Enhancements:
-* As of now, two players (only humans) can play with each other. However, Artificial Intelligence can be implemented so that a human player can play against the computer.
