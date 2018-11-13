@@ -134,12 +134,20 @@ def Minimax(player_1_board, player_2_board, depth=7, alpha=-INF, beta=INF, maxim
                 if value_t > value:
                     value = value_t
 
+                    if alpha > value:
+                        alpha = value
+
                     # best move is set if the node is at the root
                     if depth == DEPTH:
                         best_move = i
 
                 # reverting the move
                 player_2_board.pop(max_key+1, None)
+
+                # alpha-beta pruning
+                if alpha >= beta:
+                    break
+
             return value, best_move
 
         # For dragging the pieces
@@ -167,9 +175,17 @@ def Minimax(player_1_board, player_2_board, depth=7, alpha=-INF, beta=INF, maxim
                     if depth == DEPTH:
                         best_move = i
 
+                    if value > alpha:
+                        alpha = value
+
                 # reverting the drag
                 player_2_board.pop(max_key+1, None)
                 player_2_board[max_key+1] = i[0]
+
+                # alpha-beta pruning
+                if alpha >= beta:
+                    break
+
             return value, best_move
 
     else:
@@ -197,8 +213,16 @@ def Minimax(player_1_board, player_2_board, depth=7, alpha=-INF, beta=INF, maxim
                     if depth == DEPTH:
                         best_move = i
 
+                    if value < beta:
+                        beta = value
+
                 # reverting the move
                 player_1_board.pop(max_key + 1, None)
+
+                # alpha-beta pruning
+                if alpha >= beta:
+                    break
+
             return value, best_move
 
         # For dragging the pieces
@@ -226,7 +250,15 @@ def Minimax(player_1_board, player_2_board, depth=7, alpha=-INF, beta=INF, maxim
                     if depth == DEPTH:
                         best_move = i
 
+                    if value < beta:
+                        beta = value
+
                 # reverting the move
                 player_1_board.pop(max_key + 1, None)
                 player_1_board[max_key + 1] = i[0]
+
+                # alpha-beta pruning
+                if alpha >= beta:
+                    break
+
             return value, best_move
