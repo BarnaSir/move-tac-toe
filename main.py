@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import sys
 
 from collections import namedtuple
 from math import hypot
@@ -9,7 +8,6 @@ from random import randint
 from playsound import playsound
 
 from tkinter import *
-from tkinter import messagebox
 
 from ai import *
 

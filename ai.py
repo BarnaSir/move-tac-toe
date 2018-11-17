@@ -134,7 +134,7 @@ def Minimax(player_1_board, player_2_board, depth=7, alpha=-INF, beta=INF, maxim
                 if value_t > value:
                     value = value_t
 
-                    if alpha > value:
+                    if alpha < value:
                         alpha = value
 
                     # best move is set if the node is at the root
@@ -175,7 +175,7 @@ def Minimax(player_1_board, player_2_board, depth=7, alpha=-INF, beta=INF, maxim
                     if depth == DEPTH:
                         best_move = i
 
-                    if value > alpha:
+                    if alpha < value:
                         alpha = value
 
                 # reverting the drag
@@ -213,7 +213,7 @@ def Minimax(player_1_board, player_2_board, depth=7, alpha=-INF, beta=INF, maxim
                     if depth == DEPTH:
                         best_move = i
 
-                    if value < beta:
+                    if beta > value:
                         beta = value
 
                 # reverting the move
@@ -250,7 +250,7 @@ def Minimax(player_1_board, player_2_board, depth=7, alpha=-INF, beta=INF, maxim
                     if depth == DEPTH:
                         best_move = i
 
-                    if value < beta:
+                    if beta < value:
                         beta = value
 
                 # reverting the move
